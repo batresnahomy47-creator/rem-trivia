@@ -14,7 +14,10 @@ const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC_URL = (process.env.PUBLIC_URL || "").replace(/\/$/, "");
 const CLAVE_ADMIN = process.env.CLAVE_ADMIN || "rem2026";
 const DATA_FILE = path.join(__dirname, "datos.json");
-const PUBLIC_DIR = path.join(__dirname, "public");
+// Busca los archivos en /public y, si esa carpeta no existe, junto a server.js
+const PUBLIC_DIR = fs.existsSync(path.join(__dirname, "public", "jugar.html")) ? path.join(__dirname, "public") : __dirname;
+// Solo estos archivos se pueden descargar (así nadie ve las respuestas en preguntas.js)
+const PERMITIDOS = new Set(["jugar.html", "pantalla.html", "admin.html", "logo-blanco.png", "logo-naranja.png", "qrcode.js"]);
 
 const PREGUNTAS_POR_PARTIDA = 5;
 const SEGUNDOS_POR_PREGUNTA = 12;
@@ -76,8 +79,8 @@ function mezclar(a) {
 }
 const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png", ".css": "text/css" };
 function archivo(res, nombre) {
+  if (!PERMITIDOS.has(nombre)) { res.writeHead(404); return res.end("No encontrado"); }
   const p = path.join(PUBLIC_DIR, nombre);
-  if (!p.startsWith(PUBLIC_DIR)) return json(res, 404, {});
   fs.readFile(p, (err, buf) => {
     if (err) { res.writeHead(404); return res.end("No encontrado"); }
     res.writeHead(200, { "Content-Type": TIPOS[path.extname(p)] || "application/octet-stream" });
