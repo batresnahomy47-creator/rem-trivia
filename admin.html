@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REM · Administración del juego</title>
+<style>
+  :root { --carbon:#0B0D0E; --grafito:#14171A; --naranja:#FF7400; --crema:#FFF9F4; --plata:#A9ADB4; --ember:#AC4E00; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--carbon); color: var(--crema); font: 15px/1.5 "Inter","Segoe UI",system-ui,sans-serif; padding: 28px 22px; }
+  main { max-width: 980px; margin: 0 auto; }
+  h1 { font: 300 32px "Sora","Segoe UI",sans-serif; margin: 0 0 18px; }
+  input { background: var(--grafito); color: var(--crema); border: 1px solid #2a2f35; border-radius: 12px; padding: 11px 14px; font: inherit; }
+  button, a.btn { display: inline-block; background: none; color: var(--crema); border: 1px solid var(--crema); border-radius: 999px; padding: 10px 18px; font: 500 13px inherit; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; text-decoration: none; margin: 4px 6px 4px 0; }
+  .principal { background: var(--naranja); border-color: var(--naranja); color: var(--carbon); }
+  .peligro { border-color: var(--ember); color: #ff9a4d; }
+  .acciones { margin: 18px 0; }
+  .tabla { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #23282d; white-space: nowrap; }
+  th { color: var(--plata); font-weight: 500; font-size: 13px; }
+  .msg { color: var(--plata); min-height: 1.5em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Administración del juego</h1>
+  <div><input type="password" id="clave" placeholder="Clave de administración"> <button class="principal" id="entrar">Ver jugadores</button></div>
+  <div class="acciones" id="acciones" hidden>
+    <a class="btn principal" id="csv">Descargar contactos (CSV)</a>
+    <button id="ganadores">Mostrar ganadores en pantalla</button>
+    <button class="peligro" id="borrar">Borrar todos los jugadores</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="tabla"><table id="tabla"></table></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const q = () => "?clave=" + encodeURIComponent($("clave").value);
+async function cargar() {
+  const r = await fetch("/api/admin/jugadores" + q());
+  if (!r.ok) { $("msg").textContent = "Clave incorrecta."; return; }
+  const { jugadores } = await r.json();
+  $("acciones").hidden = false;
+  $("csv").href = "/api/admin/csv" + q();
+  $("msg").textContent = `${jugadores.length} jugadores registrados.`;
+  const orden = [...jugadores].sort((a, b) => b.puntaje - a.puntaje || a.tiempoMs - b.tiempoMs);
+  const t = $("tabla"); t.innerHTML = "<tr><th>#</th><th>Nombre</th><th>Contacto</th><th>Empresa</th><th>Acepta contacto</th><th>Puntaje</th><th>Aciertos</th><th>Tiempo</th><th>Partidas</th></tr>";
+  orden.forEach((j, i) => {
+    const tr = document.createElement("tr");
+    [i + 1, j.nombre, j.contacto, j.empresa || "", j.consentimiento ? "Sí" : "No", j.puntaje, j.aciertos + "/5", (j.tiempoMs / 1000).toFixed(1) + " s", j.partidas]
+      .forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+    t.appendChild(tr);
+  });
+}
+$("entrar").onclick = cargar;
+$("clave").onkeydown = e => { if (e.key === "Enter") cargar(); };
+$("ganadores").onclick = async () => { await fetch("/api/admin/ganadores" + q(), { method: "POST" }); $("msg").textContent = "Ganadores enviados a la pantalla."; };
+$("borrar").onclick = async () => {
+  if (!confirm("¿Borrar todos los jugadores? Descarga antes el CSV si necesitas los contactos.")) return;
+  await fetch("/api/admin/borrar" + q(), { method: "POST" }); cargar();
+};
+</script>
+</body>
+</html>

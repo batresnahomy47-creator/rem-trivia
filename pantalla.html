@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REM · Pantalla del stand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;800&family=Oswald:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="qrcode.js"></script>
+<style>
+  :root {
+    --carbon: #0B0D0E; --grafito: #14171A; --naranja: #FF7400; --ember: #AC4E00;
+    --ambar: #FFAD69; --crema: #FFF9F4; --plata: #A9ADB4;
+    --sora: "Sora", "Segoe UI", system-ui, sans-serif;
+    --oswald: "Oswald", "Impact", "Arial Narrow", sans-serif;
+    --inter: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--carbon); color: var(--crema); font-family: var(--inter); -webkit-font-smoothing: antialiased; cursor: default; }
+  .brillo { position: fixed; width: 70vw; height: 70vw; left: -20vw; bottom: -38vw; background: radial-gradient(circle, rgba(255,116,0,.32), transparent 62%); pointer-events: none; }
+  .escena { position: relative; height: 100%; display: grid; grid-template-columns: 46fr 54fr; gap: 4vw; padding: 5vh 4.5vw; }
+
+  .izq { display: flex; flex-direction: column; }
+  .logo { width: 6.2vw; min-width: 64px; }
+  .etiqueta { font: 600 clamp(11px,.95vw,18px)/1 var(--inter); letter-spacing: .32em; text-transform: uppercase; color: var(--naranja); display: flex; align-items: center; gap: 1vw; margin-top: 5vh; }
+  .etiqueta::after { content: ""; width: 5vw; height: 1px; background: var(--naranja); }
+  h1 { font: 300 clamp(36px,4.5vw,96px)/1.04 var(--sora); letter-spacing: -.025em; margin-top: 2.4vh; }
+  h1 b { font-weight: 800; color: var(--naranja); }
+  .bajada { color: var(--plata); font-size: clamp(15px,1.35vw,26px); line-height: 1.5; margin-top: 2.6vh; max-width: 30em; }
+  .qr-bloque { margin-top: auto; padding-top: 3vh; display: flex; align-items: center; gap: 2.2vw; }
+  .qr-marco { border: 1.5px solid var(--naranja); border-radius: 28px; padding: 14px; flex: none; }
+  .qr { background: var(--crema); border-radius: 16px; padding: 14px; width: clamp(170px, 15vw, 300px); aspect-ratio: 1; }
+  .qr svg { width: 100%; height: 100%; display: block; }
+  .qr-texto { font: 600 clamp(26px,2.6vw,54px)/1 var(--oswald); text-transform: uppercase; letter-spacing: .01em; }
+  .qr-texto span { color: var(--naranja); display: block; }
+  .url { margin-top: 1.4vh; color: var(--plata); font-size: clamp(11px,.9vw,16px); word-break: break-all; }
+
+  .der { display: flex; flex-direction: column; min-height: 0; }
+  .cab { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 2vh; border-bottom: 1px solid #23282d; }
+  .cab h2 { font: 300 clamp(22px,2.3vw,46px)/1 var(--sora); }
+  .cab h2 b { font-weight: 800; }
+  .vivo { display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: var(--naranja); margin-right: .5em; vertical-align: middle; animation: latido 1.6s infinite; }
+  @keyframes latido { 50% { opacity: .25; } }
+  .cuenta { color: var(--plata); font-size: clamp(13px,1.1vw,22px); }
+  .cuenta strong { color: var(--crema); font-weight: 600; }
+  ol.lista { list-style: none; padding: 0; margin-top: 1.6vh; display: grid; gap: 1.1vh; }
+  .fila { display: grid; grid-template-columns: 4.2vw 1fr auto auto; align-items: center; gap: 1.6vw; background: var(--grafito); border-radius: 20px; padding: 1.55vh 1.8vw; transition: background .4s; }
+  .fila .pos { font: 800 clamp(20px,2vw,40px)/1 var(--sora); color: #3a4047; }
+  .fila .nom { font: 400 clamp(18px,1.75vw,36px)/1.1 var(--sora); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .ac { color: var(--plata); font-size: clamp(12px,1vw,20px); }
+  .fila .pts { font: 800 clamp(20px,2vw,40px)/1 var(--sora); color: var(--naranja); min-width: 3.4em; text-align: right; }
+  .fila.top .pos { color: var(--naranja); }
+  .fila.primero { background: var(--naranja); }
+  .fila.primero .pos, .fila.primero .nom, .fila.primero .pts { color: var(--carbon); }
+  .fila.primero .ac { color: rgba(11,13,14,.7); }
+  .fila.recien { outline: 2px solid var(--ambar); outline-offset: 3px; }
+  .vacio { margin-top: 8vh; text-align: center; color: var(--plata); font: 300 clamp(18px,1.8vw,34px)/1.4 var(--sora); }
+  .vacio b { color: var(--naranja); font-weight: 800; }
+
+  .aviso-nuevo { position: fixed; right: 4.5vw; bottom: 4vh; display: flex; align-items: center; gap: 14px; background: var(--crema); color: var(--carbon); border-radius: 999px; padding: 1.6vh 2vw; font: 500 clamp(14px,1.25vw,24px) var(--inter); transform: translateY(calc(100% + 8vh)); transition: transform .5s cubic-bezier(.2,.9,.3,1.2); }
+  .aviso-nuevo.ver { transform: none; }
+  .aviso-nuevo b { color: var(--ember); }
+  .estrella { width: 1.1em; height: 1.1em; fill: var(--naranja); flex: none; }
+
+  .controles { position: fixed; top: 2vh; right: 2vw; display: flex; gap: 8px; opacity: 0; transition: opacity .3s; }
+  body:hover .controles { opacity: 1; }
+  .controles button { background: none; border: 1px solid #3a4047; color: var(--plata); border-radius: 999px; padding: 8px 16px; font: 500 12px var(--inter); letter-spacing: .15em; text-transform: uppercase; cursor: pointer; }
+
+  /* Ganadores */
+  .podio { position: fixed; inset: 0; background: var(--carbon); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 5vh 5vw; }
+  .podio.ver { display: flex; }
+  .podio::before { content: ""; position: absolute; width: 80vw; height: 80vw; top: -10vw; background: radial-gradient(circle, rgba(255,116,0,.35), transparent 60%); }
+  .podio > * { position: relative; }
+  .podio .logo { width: 5vw; min-width: 56px; }
+  .podio h2 { font: 300 clamp(40px,5.6vw,120px)/1 var(--sora); letter-spacing: -.025em; margin-top: 3vh; text-align: center; }
+  .podio h2 b { font-weight: 800; color: var(--naranja); }
+  .escalones { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 2vw; width: min(1400px, 90vw); margin-top: 7vh; }
+  .escalon { text-align: center; opacity: 0; transform: translateY(40px); transition: opacity .7s, transform .7s cubic-bezier(.2,.9,.3,1.1); }
+  .escalon.ver { opacity: 1; transform: none; }
+  .escalon .nombre { font: 400 clamp(22px,2.6vw,54px)/1.1 var(--sora); overflow-wrap: anywhere; }
+  .escalon .puntos { color: var(--plata); font-size: clamp(14px,1.3vw,26px); margin-top: 1vh; }
+  .escalon .bloque { margin-top: 2.4vh; border-radius: 26px 26px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 2.4vh; font: 600 clamp(48px,6vw,130px)/1 var(--oswald); }
+  .e1 .bloque { height: 34vh; background: var(--naranja); color: var(--carbon); }
+  .e2 .bloque { height: 25vh; background: var(--grafito); color: var(--crema); border: 1.5px solid var(--naranja); border-bottom: 0; }
+  .e3 .bloque { height: 18vh; background: var(--grafito); color: var(--crema); border: 1.5px solid var(--ember); border-bottom: 0; }
+  .e1 .nombre { font-weight: 800; color: var(--naranja); }
+  .podio .cierre { margin-top: 4vh; color: var(--plata); font-size: clamp(14px,1.3vw,24px); display: flex; align-items: center; gap: 12px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="brillo"></div>
+<div class="escena">
+  <section class="izq">
+    <img class="logo" src="logo-blanco.png" alt="REM">
+    <div class="etiqueta">Trivia express</div>
+    <h1>¿Tu estrategia tiene <b>dirección?</b></h1>
+    <p class="bajada">Cinco preguntas, doce segundos cada una. Responde rápido y bien: los mejores puntajes se llevan premio.</p>
+    <div class="qr-bloque">
+      <div class="qr-marco"><div class="qr" id="qr"></div></div>
+      <div>
+        <div class="qr-texto">Escanea<span>y juega.</span></div>
+        <div class="url" id="url"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="der">
+    <div class="cab">
+      <h2><span class="vivo"></span>Ranking <b>en vivo</b></h2>
+      <div class="cuenta"><strong id="total">0</strong> jugadores</div>
+    </div>
+    <ol class="lista" id="lista"></ol>
+    <div class="vacio" id="vacio">Aún nadie juega.<br>Escanea el QR y sé <b>el primero.</b></div>
+  </section>
+</div>
+
+<div class="aviso-nuevo" id="aviso"><svg class="estrella" viewBox="0 0 24 24"><path d="M12 0C12.8 7 17 11.2 24 12C17 12.8 12.8 17 12 24C11.2 17 7 12.8 0 12C7 11.2 11.2 7 12 0Z"/></svg><span id="aviso-txt"></span></div>
+
+<div class="controles">
+  <button id="btn-full">Pantalla completa (F)</button>
+  <button id="btn-gan">Mostrar ganadores (G)</button>
+</div>
+
+<div class="podio" id="podio" role="dialog" aria-label="Ganadores">
+  <img class="logo" src="logo-blanco.png" alt="REM">
+  <h2>Ideas con <b>dirección.</b></h2>
+  <div class="escalones">
+    <div class="escalon e2" id="e2"><div class="nombre"></div><div class="puntos"></div><div class="bloque">2</div></div>
+    <div class="escalon e1" id="e1"><div class="nombre"></div><div class="puntos"></div><div class="bloque">1</div></div>
+    <div class="escalon e3" id="e3"><div class="nombre"></div><div class="puntos"></div><div class="bloque">3</div></div>
+  </div>
+  <div class="cierre"><svg class="estrella" viewBox="0 0 24 24"><path d="M12 0C12.8 7 17 11.2 24 12C17 12.8 12.8 17 12 24C11.2 17 7 12.8 0 12C7 11.2 11.2 7 12 0Z"/></svg>Hagamos crecer tu marca, juntos.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let rankingActual = [], recienId = null, avisoT = null, podioTimers = [];
+
+// QR con la dirección del juego
+fetch("/api/config").then(r => r.json()).then(c => {
+  const qr = qrcode(0, "M"); qr.addData(c.urlJuego); qr.make();
+  $("qr").innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+  $("url").textContent = c.urlJuego.replace(/^https?:\/\//, "").replace(/\/$/, "");
+});
+
+function pintar(lista, total) {
+  rankingActual = lista;
+  $("total").textContent = total;
+  $("vacio").style.display = lista.length ? "none" : "block";
+  $("lista").innerHTML = "";
+  lista.slice(0, 8).forEach((j, i) => {
+    const li = document.createElement("li");
+    li.className = "fila" + (i < 3 ? " top" : "") + (i === 0 ? " primero" : "") + (j.id === recienId ? " recien" : "");
+    li.innerHTML = `<span class="pos">${i + 1}</span><span class="nom"></span><span class="ac">${j.aciertos}/5</span><span class="pts">${j.puntaje}</span>`;
+    li.querySelector(".nom").textContent = j.nombre;
+    $("lista").appendChild(li);
+  });
+}
+
+function avisar(n) {
+  recienId = n.id;
+  $("aviso-txt").innerHTML = "";
+  const b = document.createElement("b"); b.textContent = n.nombre;
+  $("aviso-txt").append(b, ` acaba de sumar ${n.puntaje} pts`);
+  $("aviso").classList.add("ver");
+  clearTimeout(avisoT);
+  avisoT = setTimeout(() => { $("aviso").classList.remove("ver"); recienId = null; pintar(rankingActual, $("total").textContent); }, 6000);
+}
+
+function conectar() {
+  const ev = new EventSource("/api/eventos");
+  ev.onmessage = e => {
+    const d = JSON.parse(e.data);
+    if (d.nuevo) avisar(d.nuevo);
+    pintar(d.ranking, d.total);
+    if (d.revelar) mostrarGanadores();
+  };
+  ev.onerror = () => { ev.close(); setTimeout(conectar, 3000); };
+}
+conectar();
+
+function mostrarGanadores() {
+  podioTimers.forEach(clearTimeout); podioTimers = [];
+  ["e1", "e2", "e3"].forEach((id, i) => {
+    const j = rankingActual[i], el = $(id);
+    el.classList.remove("ver");
+    el.querySelector(".nombre").textContent = j ? j.nombre : "—";
+    el.querySelector(".puntos").textContent = j ? `${j.puntaje} pts · ${j.aciertos}/5` : "";
+  });
+  $("podio").classList.add("ver");
+  // Revelado en orden: tercero, segundo, primero
+  [["e3", 600], ["e2", 2200], ["e1", 4200]].forEach(([id, t]) => podioTimers.push(setTimeout(() => $(id).classList.add("ver"), t)));
+}
+function cerrarGanadores() { $("podio").classList.remove("ver"); }
+
+function pantallaCompleta() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+$("btn-full").onclick = pantallaCompleta;
+$("btn-gan").onclick = mostrarGanadores;
+$("podio").onclick = cerrarGanadores;
+document.addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (k === "f") pantallaCompleta();
+  if (k === "g") mostrarGanadores();
+  if (k === "escape") cerrarGanadores();
+});
+</script>
+</body>
+</html>

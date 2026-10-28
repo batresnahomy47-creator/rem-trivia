@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0D0E">
+<title>REM · Trivia express</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --carbon: #0B0D0E; --grafito: #14171A; --naranja: #FF7400; --ember: #AC4E00;
+    --ambar: #FFAD69; --crema: #FFF9F4; --plata: #A9ADB4;
+    --sora: "Sora", "Segoe UI", system-ui, sans-serif;
+    --inter: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--carbon); color: var(--crema); font-family: var(--inter);
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  body::before {
+    content: ""; position: fixed; inset: -20% -40% auto auto; width: 90vw; height: 90vw;
+    background: radial-gradient(circle, rgba(255,116,0,.28), transparent 65%); pointer-events: none; z-index: 0;
+  }
+  main { position: relative; z-index: 1; max-width: 460px; margin: 0 auto; min-height: 100%; padding: 28px 22px 32px; display: flex; flex-direction: column; }
+  .vista { display: none; flex: 1; flex-direction: column; }
+  .vista.activa { display: flex; }
+  .logo { width: 64px; height: auto; display: block; }
+  .etiqueta { font: 600 12px/1 var(--inter); letter-spacing: .3em; text-transform: uppercase; color: var(--naranja); display: flex; align-items: center; gap: 12px; }
+  .etiqueta::after { content: ""; width: 56px; height: 1px; background: var(--naranja); }
+  h1 { font: 300 38px/1.08 var(--sora); letter-spacing: -.02em; margin: 18px 0 14px; }
+  h1 b, h2 b { font-weight: 800; color: var(--naranja); }
+  h2 { font: 300 25px/1.2 var(--sora); letter-spacing: -.01em; }
+  p.lead { color: var(--plata); font-size: 16px; line-height: 1.55; }
+  .reglas { display: flex; gap: 10px; margin: 22px 0 26px; }
+  .regla { flex: 1; border: 1px solid rgba(255,116,0,.45); border-radius: 16px; padding: 12px 10px; text-align: center; }
+  .regla strong { display: block; font: 800 24px/1 var(--sora); color: var(--naranja); }
+  .regla span { font-size: 12px; color: var(--plata); }
+  label { display: block; font-size: 13px; color: var(--plata); margin: 14px 0 6px; }
+  input[type=text] {
+    width: 100%; font: 400 17px var(--inter); color: var(--crema); background: var(--grafito);
+    border: 1px solid #2a2f35; border-radius: 14px; padding: 14px 16px; outline: none;
+  }
+  input[type=text]:focus { border-color: var(--naranja); }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 13px; color: var(--plata); line-height: 1.45; }
+  .check input { accent-color: var(--naranja); width: 20px; height: 20px; flex: none; margin-top: 1px; }
+  .boton {
+    margin-top: 24px; width: 100%; border: 0; border-radius: 999px; padding: 18px 22px; cursor: pointer;
+    background: var(--naranja); color: var(--carbon); font: 600 15px var(--inter); letter-spacing: .25em; text-transform: uppercase;
+  }
+  .boton:disabled { opacity: .5; }
+  .boton:focus-visible, .opcion:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .error { color: var(--ambar); font-size: 14px; margin-top: 12px; min-height: 1em; }
+  .pie { margin-top: auto; padding-top: 26px; font-size: 12px; color: #5d636b; text-align: center; }
+
+  /* Pregunta */
+  .barra-sup { display: flex; justify-content: space-between; align-items: center; font: 600 13px var(--inter); letter-spacing: .2em; color: var(--plata); }
+  .barra-sup .pts { color: var(--naranja); }
+  .tiempo { height: 6px; border-radius: 6px; background: var(--grafito); margin: 16px 0 28px; overflow: hidden; }
+  .tiempo div { height: 100%; width: 100%; background: var(--naranja); transform-origin: left; }
+  .pregunta { font: 400 26px/1.25 var(--sora); letter-spacing: -.01em; min-height: 2.6em; }
+  .opciones { display: grid; gap: 12px; margin-top: 26px; }
+  .opcion {
+    text-align: left; width: 100%; border: 1px solid #2a2f35; background: var(--grafito); color: var(--crema);
+    border-radius: 18px; padding: 17px 18px; font: 500 16px/1.35 var(--inter); cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .opcion:active { transform: scale(.98); }
+  .opcion.bien { background: var(--naranja); color: var(--carbon); border-color: var(--naranja); }
+  .opcion.mal { border-color: var(--ember); color: var(--plata); text-decoration: line-through; }
+  .opcion.apagada { opacity: .45; }
+  .aviso { margin-top: 18px; font: 600 15px var(--inter); min-height: 1.4em; color: var(--ambar); }
+
+  /* Final */
+  .final { text-align: left; }
+  .gran-numero { font: 800 96px/1 var(--sora); color: var(--naranja); letter-spacing: -.03em; margin-top: 26px; }
+  .datos-final { display: flex; gap: 10px; margin: 24px 0; }
+  .estrella { width: 16px; height: 16px; fill: var(--naranja); flex: none; }
+  .cierre { display: flex; gap: 10px; align-items: center; margin-top: 8px; color: var(--plata); font-size: 15px; line-height: 1.5; }
+  .pill { display: inline-block; margin-top: 26px; border: 1px solid var(--crema); border-radius: 999px; padding: 13px 22px; font: 500 13px var(--inter); letter-spacing: .25em; text-transform: uppercase; color: var(--crema); background: none; cursor: pointer; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <!-- Inicio -->
+  <section class="vista activa" id="v-inicio">
+    <img class="logo" src="logo-blanco.png" alt="REM">
+    <div style="margin-top:34px" class="etiqueta">Trivia express</div>
+    <h1>¿Tu estrategia tiene <b>dirección?</b></h1>
+    <p class="lead">Responde rápido y bien. Los mejores puntajes aparecen en la pantalla del stand y se llevan premio.</p>
+    <div class="reglas">
+      <div class="regla"><strong>5</strong><span>preguntas</span></div>
+      <div class="regla"><strong>12s</strong><span>por pregunta</span></div>
+      <div class="regla"><strong>+50</strong><span>extra por rapidez</span></div>
+    </div>
+    <label for="nombre">Tu nombre (así sale en pantalla)</label>
+    <input type="text" id="nombre" maxlength="24" autocomplete="given-name" placeholder="Ej. Camila R.">
+    <label for="contacto">Email o WhatsApp, para avisarte si ganas</label>
+    <input type="text" id="contacto" maxlength="80" autocomplete="email" placeholder="tu@correo.com">
+    <label for="empresa">Tu marca o empresa (opcional)</label>
+    <input type="text" id="empresa" maxlength="60" autocomplete="organization">
+    <label class="check"><input type="checkbox" id="consent"> <span>Quiero que REM me escriba con ideas para hacer crecer mi marca.</span></label>
+    <button class="boton" id="btn-jugar">Jugar ahora</button>
+    <div class="error" id="error" role="alert"></div>
+    <div class="pie">Usamos tu contacto solo para avisarte si ganas<span id="pie-extra"> y, si lo aceptas, para escribirte</span>.</div>
+  </section>
+
+  <!-- Pregunta -->
+  <section class="vista" id="v-pregunta">
+    <div class="barra-sup"><span id="contador">1 / 5</span><span class="pts" id="pts">0 pts</span></div>
+    <div class="tiempo"><div id="tiempo"></div></div>
+    <div class="pregunta" id="pregunta"></div>
+    <div class="opciones" id="opciones"></div>
+    <div class="aviso" id="aviso" aria-live="polite"></div>
+  </section>
+
+  <!-- Final -->
+  <section class="vista final" id="v-final">
+    <img class="logo" src="logo-blanco.png" alt="REM">
+    <div style="margin-top:34px" class="etiqueta">Tu resultado</div>
+    <div class="gran-numero" id="f-puntaje">0</div>
+    <h2 id="f-titulo"></h2>
+    <div class="datos-final">
+      <div class="regla"><strong id="f-aciertos">0/5</strong><span>aciertos</span></div>
+      <div class="regla"><strong id="f-pos">#1</strong><span id="f-de">de 1</span></div>
+    </div>
+    <div class="cierre"><svg class="estrella" viewBox="0 0 24 24"><path d="M12 0C12.8 7 17 11.2 24 12C17 12.8 12.8 17 12 24C11.2 17 7 12.8 0 12C7 11.2 11.2 7 12 0Z"/></svg><span>Mira tu nombre en la pantalla del stand. Las buenas ideas necesitan un plan: hablemos del tuyo.</span></div>
+    <button class="pill" id="btn-otra">Jugar otra vez ↗</button>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let partida = null, indice = 0, reloj = null, bloqueado = false;
+
+function mostrar(v) {
+  document.querySelectorAll(".vista").forEach(s => s.classList.toggle("activa", s.id === v));
+  window.scrollTo(0, 0);
+}
+async function api(ruta, cuerpo) {
+  const r = await fetch(ruta, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || "No se pudo conectar. Revisa tu señal y vuelve a intentar.");
+  return d;
+}
+
+// Recordar datos para "jugar otra vez"
+try {
+  const g = JSON.parse(localStorage.getItem("rem-jugador") || "{}");
+  if (g.nombre) $("nombre").value = g.nombre;
+  if (g.contacto) $("contacto").value = g.contacto;
+  if (g.empresa) $("empresa").value = g.empresa;
+} catch (e) {}
+
+$("btn-jugar").onclick = async () => {
+  const nombre = $("nombre").value.trim(), contacto = $("contacto").value.trim();
+  $("error").textContent = "";
+  if (!nombre) { $("error").textContent = "Escribe tu nombre para aparecer en pantalla."; return $("nombre").focus(); }
+  if (contacto.length < 5) { $("error").textContent = "Deja tu email o WhatsApp para poder avisarte si ganas."; return $("contacto").focus(); }
+  $("btn-jugar").disabled = true;
+  try {
+    try { localStorage.setItem("rem-jugador", JSON.stringify({ nombre, contacto, empresa: $("empresa").value.trim() })); } catch (e) {}
+    partida = await api("/api/empezar", { nombre, contacto, empresa: $("empresa").value.trim(), consentimiento: $("consent").checked });
+    indice = 0; $("pts").textContent = "0 pts";
+    mostrar("v-pregunta"); pintarPregunta();
+  } catch (e) { $("error").textContent = e.message; }
+  $("btn-jugar").disabled = false;
+};
+
+function pintarPregunta() {
+  const p = partida.preguntas[indice];
+  bloqueado = false;
+  $("contador").textContent = `${indice + 1} / ${partida.preguntas.length}`;
+  $("pregunta").textContent = p.texto;
+  $("aviso").textContent = "";
+  const cont = $("opciones"); cont.innerHTML = "";
+  p.opciones.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.className = "opcion"; b.textContent = t;
+    b.onclick = () => responder(i);
+    cont.appendChild(b);
+  });
+  api("/api/mostrar", { sid: partida.sid, indice }).catch(() => {});
+  const barra = $("tiempo"), total = partida.segundos * 1000, inicio = performance.now();
+  cancelAnimationFrame(reloj);
+  const tick = t => {
+    const resto = Math.max(0, 1 - (t - inicio) / total);
+    barra.style.transform = `scaleX(${resto})`;
+    barra.style.background = resto < .3 ? "var(--ambar)" : "var(--naranja)";
+    if (resto <= 0) return responder(-1);
+    reloj = requestAnimationFrame(tick);
+  };
+  reloj = requestAnimationFrame(tick);
+}
+
+async function responder(op) {
+  if (bloqueado) return;
+  bloqueado = true; cancelAnimationFrame(reloj);
+  const botones = [...document.querySelectorAll(".opcion")];
+  botones.forEach(b => b.disabled = true);
+  try {
+    const r = await api("/api/responder", { sid: partida.sid, indice, opcion: op });
+    botones.forEach((b, i) => {
+      if (i === r.indiceCorrecto) b.classList.add("bien");
+      else if (i === op) b.classList.add("mal");
+      else b.classList.add("apagada");
+    });
+    $("pts").textContent = `${r.puntaje} pts`;
+    $("aviso").textContent = r.correcta ? `Correcto · +${r.puntos} pts` : (op === -1 ? "Se acabó el tiempo" : "Esta no era");
+  } catch (e) { $("aviso").textContent = e.message; }
+  setTimeout(siguiente, 1300);
+}
+
+async function siguiente() {
+  indice++;
+  if (indice < partida.preguntas.length) return pintarPregunta();
+  try {
+    const f = await api("/api/terminar", { sid: partida.sid });
+    $("f-puntaje").textContent = f.puntaje;
+    $("f-aciertos").textContent = `${f.aciertos}/${f.total}`;
+    $("f-pos").textContent = `#${f.posicion}`;
+    $("f-de").textContent = `de ${f.jugadores} jugadores`;
+    $("f-titulo").innerHTML = f.aciertos === f.total ? "Estrategia <b>perfecta.</b>"
+      : f.aciertos >= 3 ? "Vas con <b>dirección.</b>" : "Toda marca empieza con <b>un plan.</b>";
+    mostrar("v-final");
+  } catch (e) { $("aviso").textContent = e.message; }
+}
+
+$("btn-otra").onclick = () => mostrar("v-inicio");
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "rem-trivia-express",
+  "version": "1.0.0",
+  "description": "Juego de trivia para el stand de REM: QR, celulares y ranking en pantalla grande",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
